@@ -1,0 +1,37 @@
+from random import *
+
+def create_random_list():
+    random_list = []
+    for i in range(100):
+        random_list.append(randint(1,100))
+    return random_list
+
+def reduce_one_per_time(people_money):
+    for i in range(1,101):
+        people_money[i] -= 1
+    return people_money
+
+def check_anyone_has_no_money(people_money):
+    flag = 1
+    for v in people_money.values():
+        if v == 0:
+            flag = 0
+    return flag
+
+people = 100
+money = 100
+people_money = dict(list(zip(range(1,101),[100]*100)))
+count = 0
+
+#1st
+while True:
+    random_list = create_random_list()
+    people_money = reduce_one_per_time(people_money)
+    for i in random_list:
+        people_money[i] += 1
+    count += 1
+    if check_anyone_has_no_money(people_money) == 0:
+        print(people_money)
+        print(sorted(people_money.values()))
+        print(count)
+        break
