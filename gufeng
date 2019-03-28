@@ -70,3 +70,64 @@ def main():
     
 if __name__ == "__main__":
     main()
+
+#################################################################################################################
+
+# -*- encoding=utf-8 -*-
+import requests
+from bs4 import BeautifulSoup as bs
+from urllib.request import urlretrieve
+import os
+import time
+
+def url_request(url):
+    response = requests.get(url, timeout=20)
+    if str(response) == "<Response [200]>":   #response为requests.models.Response数据类型
+        web_html = bs(response.text,"lxml")
+        return web_html
+    else:
+        return 0
+
+def get_url(bs_tag):
+    url_ahead_part = "https://www.gufengmh8.com"
+    key = bs_tag.text.strip()
+    url_last_part = bs_tag.attrs["href"]
+    url = url_ahead_part + url_last_part
+    return key,url
+
+def find_extract(string,pattern_1,pattern_2):
+    start = string.find(pattern_1) + len(pattern_1)
+    end = string.find(pattern_2, start)
+    if end == -1:
+        return 0
+    else:
+        return string[start:end]
+
+response = requests.get("https://www.gufengmh8.com/manhua/jieliyaosheng/",timeout=10)
+web_html = bs(response.text,"lxml")
+chapter_list = web_html.find_all("ul",id="chapter-list-1")
+web_list = bs(str(chapter_list)).find_all("a")
+web_dict = {}
+for i in range(28,len(web_list)):
+    key, value = get_url(web_list[i])
+    web_dict[key] = value
+del web_dict["你愿意为梦想付费吗"]
+del web_dict["1月28号请假条"]
+
+web_dict_key_list = list(web_dict.keys())
+
+for i in range(len(web_dict_key_list)):
+    num = web_dict_key_list[i]
+    dir_name = num.split()[0]
+    os.makedirs("./gufeng/{}".format(dir_name), exist_ok=True)
+    sub_web_url = web_dict[num]
+    sub_web_html = url_request(sub_web_url)
+    content_string = sub_web_html.find_all("script")[2].text
+    first_part = "https://res.gufengmh8.com/"
+    mid_part = find_extract(content_string, 'chapterPath = "', '"')
+    last_part = find_extract(content_string, 'chapterImages = ["', '"]')
+    last_part_list = last_part.split('","')
+    for j in range(len(last_part_list)):
+        img_url = first_part + mid_part + last_part_list[j]
+        urlretrieve(img_url,"./gufeng/{}/{}.jpg".format(dir_name,i))
+    time.sleep(5)
