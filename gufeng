@@ -6,81 +6,9 @@ import os
 import time
 
 def url_request(url):
-    response = requests.get(url, timeout=20)
-    if str(response) == "<Response [200]>":   #response为requests.models.Response数据类型
-        web_html = bs(response.text,"lxml")
-        return web_html
-    else:
-        return 0
-
-def get_url(bs_tag):
-    url_ahead_part = "https://www.gufengmh8.com"
-    key = bs_tag.text.strip()
-    url_last_part = bs_tag.attrs["href"]
-    url = url_ahead_part + url_last_part
-    return key,url
-
-def bs_find(web_html):
-    div_content_list = web_html.find_all("div", class_ = "contents-section-inner")  #10800之前内容转移链接至其他网页
-    img_list = div_content_list[0].find_all("img")
-    return img_list
-def extract_ref_num(bs_tag):
-    num_1 = bs_tag.find_all("script")[2].text.find("images/comic") + 12
-    num_2 = bs_tag.find_all("script")[2].text.find('"', num1)
-    mid_part = bs_tag.find_all("script")[2].text[num1:num2]
-    return mid_part
-
-def combine_img_link(mid_part,jpg):
-    first_part = "https://res.gufengmh8.com/images/comic"
-    img_url = first_part + mid_part + jpg
-    return img_url
-
-def main():
-    """
-        Download
-    """
-    base_url = "https://www.gufengmh8.com/manhua/jieliyaosheng/"
-    base_html_web = url_request(base_url)
-    while base_html_web:
-        chapter_list = base_html_web.find_all("ul",id="chapter-list-1")
-        web_list = bs(str(chapter_list)).find_all("a")
-        web_dict = {}
-        for i in range(28,len(web_list)):
-            key, value = get_url(web_list[i])
-            web_dict[key] = value
-        del web_dict["你愿意为梦想付费吗"]
-        del web_dict["1月28号请假条"]
-        for k,v in web_dict.items():
-            os.makedirs(r'D:\GuFeng\JieLiYaoSheng\{}'.format(k), exist_ok=True)
-            sub_html_web = url_request(v)
-            while sub_html_web:
-                mid_part = extract_ref_num(sub_html_web)
-                r = re.compile(r'\[".*\]')
-                img_list = r.findall(sub_html_web.)
-                jpg_list = img_list[0].split('","')
-                
-        mid_part = 
-        img_url = combine_img_link(mid_part,jpg)
-        urlretrieve(img_url,r'D:\GuFeng\JieLiYaoSheng\{}\{}.jpg'.format(save_dir,j))
-        
-       
-        
-    else:
-        pass
-    
-if __name__ == "__main__":
-    main()
-
-#################################################################################################################
-
-# -*- encoding=utf-8 -*-
-import requests
-from bs4 import BeautifulSoup as bs
-from urllib.request import urlretrieve
-import os
-import time
-
-def url_request(url):
+    '''
+        requests 请求网页，成功返回 bs.html; 失败，返回 0
+    '''
     response = requests.get(url, timeout=20)
     if str(response) == "<Response [200]>":   #response为requests.models.Response数据类型
         web_html = bs(response.text,"lxml")
@@ -96,9 +24,12 @@ def get_url(bs_tag):
     return key,url
 
 def find_extract(string,pattern_1,pattern_2):
+    '''
+        字符串查找首尾匹配，若首尾都能匹配到字符串则返回中间部分;否则，返回0
+    '''
     start = string.find(pattern_1) + len(pattern_1)
     end = string.find(pattern_2, start)
-    if end == -1:
+    if start == -1 or end == -1:
         return 0
     else:
         return string[start:end]
@@ -129,5 +60,5 @@ for i in range(len(web_dict_key_list)):
     last_part_list = last_part.split('","')
     for j in range(len(last_part_list)):
         img_url = first_part + mid_part + last_part_list[j]
-        urlretrieve(img_url,"./gufeng/{}/{}.jpg".format(dir_name,i))
+        urlretrieve(img_url,"./gufeng/{}/{}.jpg".format(dir_name,i))    #HTTPError: HTTP Error 404: Not Found
     time.sleep(5)
